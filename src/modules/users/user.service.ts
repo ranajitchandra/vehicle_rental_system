@@ -1,36 +1,58 @@
-import { pool } from "../../config/db"
-import bcrypt from "bcryptjs";
 
-const createUserQuery = async(payload: Record<string, unknown>) => {
-    const { name, email, role, password } = payload
-    const hashPass = await bcrypt.hash(password as string, 10)
-    const result = await pool.query(`INSERT INTO users(name, email, role, password) VALUES($1, $2, $3, $4) RETURNING *`, [name, email, role, hashPass]);
-    return result;
-}
+import { pool } from "../../config/db";
 
-const getAllUserQuery = async() => {
-    const result = await pool.query(`SELECT * FROM users`)
-    return result;
-}
+const getAllUsers = async () => {
+    const result = await pool.query(`SELECT id, name, email, phone, role, created_at, updated_at FROM users`);
+    return result.rows;
+};
 
-const getSingleUserQuery = async(user_id: any) => {
-    const result = await pool.query(`SELECT * FROM users WHERE id = $1`, [user_id]);
-    return result;
-}
-const updateUserQuery = async(name: string, email: string, user_id: any) => {
-    const result = await pool.query(`UPDATE users SET name=$1, email=$2 WHERE id = $3 RETURNING *`, [name, email, user_id]);
-    return result;
-}
+const getUserById = async (userId: number) => {
+    const result = await pool.query(`SELECT id, name, email, phone, role, created_at, updated_at FROM users WHERE id=$1`, [userId]);
+    return result.rows[0];
+};
 
-const deleteUserQuery = async(user_id: any) => {
-    const result = await pool.query(`DELETE FROM users WHERE id = $1`, [user_id]);
-    return result;
-}
+const updateUser = async (userId: number, data: { name?: string; phone?: string; role?: string }) => {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let idx = 1;
 
-export const userServices = {
-    createUserQuery,
-    getAllUserQuery,
-    getSingleUserQuery,
-    updateUserQuery,
-    deleteUserQuery
+    if (data.name) {
+        fields.push(`name=$${idx++}`);
+        values.push(data.name);
+    }
+    if (data.phone) {
+        fields.push(`phone=$${idx++}`);
+        values.push(data.phone);
+    }
+    if (data.role) {
+        fields.push(`role=$${idx++}`);
+        values.push(data.role);
+    }
+
+    if (fields.length === 0) return getUserById(userId);
+
+    values.push(userId);
+    const query = `UPDATE users SET ${fields.join(", ")}, updated_at=NOW() WHERE id=$${idx} RETURNING id, name, email, phone, role, created_at, updated_at`;
+    const result = await pool.query(query, values);
+    return result.rows[0];
+};
+
+const deleteUser = async (userId: number) => {
+    const bookingCheck = await pool.query(
+        `SELECT COUNT(*) FROM bookings WHERE customer_id=$1 AND status='active'`,
+        [userId]
+    );
+    if (parseInt(bookingCheck.rows[0].count) > 0) {
+        throw new Error("Cannot delete user with active bookings");
+    }
+
+    const result = await pool.query(`DELETE FROM users WHERE id=$1 RETURNING id, name, email`, [userId]);
+    return result.rows[0];
+};
+
+export const userService = {
+    getAllUsers,
+    getUserById,
+    updateUser,
+    deleteUser
 }

@@ -1,26 +1,18 @@
+// src/modules/users/user.route.ts
+import { Router } from "express";
+import { authMiddleware } from "../../middleware/auth.middleware";
+import { roleMiddleware } from "../../middleware/role.middleware";
+import { userController } from "./user.controller";
 
-import express, { Request, Response } from "express";
-import { userControllers } from "./user.controller";
-import auth from "../../middleware/auth";
-import logger from "../../middleware/logger";
+const router = Router();
 
-const router = express.Router()
+// GET all users - Admin only
+router.get("/", authMiddleware, roleMiddleware(["admin"]), userController.getUsers);
 
-// create users
-router.post("/", userControllers.createUser)
+// PUT update user - Admin or Own
+router.put("/:userId", authMiddleware, userController.updateUser);
 
-// all users
-router.get("/", logger, auth("admin"), userControllers.getUsers)
-
-// single users
-router.get("/:id", auth("admin", "user"), userControllers.getSingleUser)
-
-// update users
-router.put("/:id", userControllers.updateUser)
-
-//  delete users
-router.delete("/:id", userControllers.deleteUser)
-
+// DELETE user - Admin only
+router.delete("/:userId", authMiddleware, roleMiddleware(["admin"]), userController.deleteUser);
 
 export const userRoutes = router;
-

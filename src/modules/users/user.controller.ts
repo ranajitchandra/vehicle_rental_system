@@ -1,135 +1,97 @@
+// src/modules/users/user.controller.ts
 import { Request, Response } from "express";
-import { userServices } from "./user.service";
+import { userService } from "./user.service";
 
-const createUser = async (req: Request, res: Response) => {
-    
+// Payload type for updateUser
+type UpdateUserPayload = {
+    name?: string;
+    email?: string;
+    phone?: string;
+    role?: string;
+};
 
+// Get all users
+ const getUsers = async (req: Request, res: Response) => {
     try {
-        const result = await userServices.createUserQuery(req.body)
-        console.log(result.rows[0]);
-        res.status(201).json({ success: true, message: "data inserted successfully", data: result.rows[0] })
-
-    } catch (err: any) {
-        res.status(500).json({
-            success: false,
-            message: err.message
-        })
-    }
-}
-
-const getUsers = async (req: Request, res: Response) => {
-
-    try {
-        const result = await userServices.getAllUserQuery()
+        const users = await userService.getAllUsers();
         res.status(200).json({
             success: true,
-            message: "Users Retrived Successfully",
-            data: result.rows,
-        })
+            message: "Users retrieved successfully",
+            data: users,
+        });
     } catch (err: any) {
-        res.status(500).json({
-            success: false,
-            message: err.message,
-            details: err
-        })
+        res.status(500).json({ success: false, message: err.message });
     }
-}
+};
 
-const getSingleUser = async (req: Request, res: Response) => {
+// Update a user
+ const updateUser = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { name, email, phone, role } = req.body;
+
+    if (!userId) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    const id = parseInt(userId, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Invalid User ID" });
+    }
 
     try {
-        const result = await userServices.getSingleUserQuery(req.params.id)
-        if (result.rows.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "User get successfully",
-                data: result.rows[0]
-            })
-        } else {
-            res.status(404).json({
-                success: false,
-                message: "User Not Found"
-            })
+        // Admin can update anyone; customer only own profile
+        if (req.user?.role !== "admin" && req.user?.id !== id) {
+            return res.status(403).json({ success: false, message: "Forbidden" });
         }
 
-        console.log(result);
+        // Customer cannot update role
+        if (req.user?.role !== "admin" && role) {
+            return res.status(403).json({ success: false, message: "Cannot update role" });
+        }
 
+        const payload: UpdateUserPayload = { name, email, phone };
+        if (req.user?.role === "admin" && role) {
+            payload.role = role;
+        }
+
+        const updatedUser = await userService.updateUser(id, payload);
+
+        res.status(200).json({
+            success: true,
+            message: "User updated successfully",
+            data: updatedUser,
+        });
     } catch (err: any) {
-        res.status(500).json({
-            success: false,
-            message: err.message,
-            details: err
-        })
+        res.status(500).json({ success: false, message: err.message });
     }
-}
+};
 
-const updateUser = async (req: Request, res: Response) => {
-    // console.log(req.params.id);
-    const { name, email } = req.body
+// Delete a user
+ const deleteUser = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+
+    if (!userId) {
+        return res.status(400).json({ success: false, message: "User ID is required" });
+    }
+
+    const id = parseInt(userId, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ success: false, message: "Invalid User ID" });
+    }
 
     try {
-        const result = await userServices.updateUserQuery(name, email, req.params.id)
-        if (result.rows.length > 0) {
-            res.status(200).json({
-                success: true,
-                message: "User Updated successfully",
-                data: result.rows[0]
-            })
-        } else {
-            res.status(404).json({
-                success: false,
-                message: "User Not Found"
-            })
-        }
-
-        console.log(result);
-
+        await userService.deleteUser(id);
+        res.status(200).json({
+            success: true,
+            message: "User deleted successfully",
+        });
     } catch (err: any) {
-        res.status(500).json({
-            success: false,
-            message: err.message,
-            details: err
-        })
+        res.status(400).json({ success: false, message: err.message });
     }
+};
 
-}
-
-const deleteUser = async (req: Request, res: Response) => {
-    // console.log(req.params.id);
-
-    try {
-
-        const result = await userServices.deleteUserQuery(req.params.id)
-        if (result.rowCount === 0) {
-            res.status(404).json({
-                success: false,
-                message: "User Not Found"
-            })
-        } else {
-            res.status(200).json({
-                success: true,
-                message: "User Deleted successfully",
-                data: result.rows
-            })
-        }
-        console.log(result);
-
-
-    } catch (err: any) {
-        res.status(500).json({
-            success: false,
-            message: err.message,
-            details: err
-        })
-    }
-
-}
-
-
-export const userControllers = {
-    createUser,
+export const userController = {
     getUsers,
-    getSingleUser,
     updateUser,
     deleteUser
 }
