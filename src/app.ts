@@ -5,6 +5,7 @@ import logger from "./middleware/logger";
 import { userRoutes } from "./modules/users/user.route";
 import { authRoutes } from "./modules/auth/auth.route";
 import path from "path";
+import { vehicleRoutes } from "./modules/vehicles/vehicle.routes";
 
 
 const app = express()
@@ -30,6 +31,8 @@ app.use("/api/v1/users", userRoutes)
 
 // auth Route
 app.use("/api/v1/auth", authRoutes)
+
+app.use("/api/v1/vehicles", vehicleRoutes)
 
 
 // prevent route not exist

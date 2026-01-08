@@ -14,7 +14,6 @@ const createVehicle = async (req: Request, res: Response) => {
     res.status(400).json({
       success: false,
       message: error.message,
-      errors: error.message,
     });
   }
 };
@@ -40,7 +39,6 @@ const getVehicleById = async (req: Request, res: Response) => {
     return res.status(404).json({
       success: false,
       message: "Vehicle not found",
-      errors: "Vehicle not found",
     });
   }
 
@@ -61,7 +59,6 @@ const updateVehicle = async (req: Request, res: Response) => {
     return res.status(404).json({
       success: false,
       message: "Vehicle not found",
-      errors: "Vehicle not found",
     });
   }
 
@@ -84,7 +81,6 @@ const deleteVehicle = async (req: Request, res: Response) => {
     res.status(400).json({
       success: false,
       message: error.message,
-      errors: error.message,
     });
   }
 };
