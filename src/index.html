@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Server Workflow Animation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            text-align: center;
+            background: linear-gradient(to right, #f0f4f8, #e0ebf5);
+            padding: 2rem;
+        }
+
+        h1 {
+            margin-bottom: 2rem;
+            color: #333;
+        }
+
+        .workflow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .node {
+            width: 120px;
+            height: 60px;
+            background-color: #ddd;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: #333;
+            position: relative;
+            transition: transform 0.5s, background-color 0.5s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .node.active {
+            background-color: #4caf50;
+            color: white;
+            transform: scale(1.2);
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .arrow {
+            width: 40px;
+            height: 4px;
+            background-color: #aaa;
+            position: relative;
+            transition: background-color 0.5s;
+        }
+
+        .arrow.active {
+            background-color: #4caf50;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            background-color: #ff5722;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s linear;
+            box-shadow: 0 0 15px rgba(255, 87, 34, 0.8);
+        }
+
+        #log {
+            font-family: monospace;
+            margin-top: 1rem;
+            min-height: 50px;
+            color: #333;
+        }
+    </style>
+
+
+</head>
+
+<body>
+
+    <h1>Express Server Workflow</h1>
+
+    <div class="workflow">
+        <div class="node" id="client">Client</div>
+        <div class="arrow" id="arrow1"></div>
+        <div class="node" id="logger">Logger</div>
+        <div class="arrow" id="arrow2"></div>
+        <div class="node" id="db">Database</div>
+        <div class="arrow" id="arrow3"></div>
+        <div class="node" id="route">Route</div>
+        <div class="arrow" id="arrow4"></div>
+        <div class="node" id="response">Response</div>
+        <div class="dot" id="dot"></div>
+    </div>
+
+    <div id="log"></div>
+
+    <script>
+        const dot = document.getElementById('dot');
+        const logDiv = document.getElementById('log');
+
+        const nodes = [
+            document.getElementById('client'),
+            document.getElementById('logger'),
+            document.getElementById('db'),
+            document.getElementById('route'),
+            document.getElementById('response')
+        ];
+
+        const arrows = [
+            document.getElementById('arrow1'),
+            document.getElementById('arrow2'),
+            document.getElementById('arrow3'),
+            document.getElementById('arrow4')
+        ];
+
+        const workflowLogs = [
+            "Request sent from client...",
+            "Logger middleware processing...",
+            "Querying the database...",
+            "Route handler executing...",
+            "Sending response to client..."
+        ];
+
+        let index = 0;
+
+        function moveDot() {
+            // Reset previous highlights
+            nodes.forEach(n => n.classList.remove('active'));
+            arrows.forEach(a => a.classList.remove('active'));
+
+            // Highlight current node and arrow
+            nodes[index].classList.add('active');
+            if (index < arrows.length) arrows[index].classList.add('active');
+
+            // Show log
+            logDiv.textContent = workflowLogs[index];
+
+            // Move dot to center of current node
+            const nodeRect = nodes[index].getBoundingClientRect();
+            const parentRect = nodes[0].parentElement.getBoundingClientRect();
+            dot.style.left = nodeRect.left - parentRect.left + nodeRect.width / 2 + "px";
+            dot.style.top = nodeRect.top - parentRect.top + nodeRect.height / 2 + "px";
+
+            // Move to next node, loop infinitely
+            index = (index + 1) % nodes.length;
+        }
+
+        // Animate every 1 second
+        setInterval(moveDot, 1000);
+
+
+    </script>
+</body>
+
+</html>
