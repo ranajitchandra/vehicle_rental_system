@@ -26,10 +26,10 @@ app.get("/", logger, (req: Request, res: Response) => {
 });
 
 // user CURD
-app.use("/users", userRoutes)
+app.use("/api/v1/users", userRoutes)
 
 // auth Route
-app.use("/auth", authRoutes)
+app.use("/api/v1/auth", authRoutes)
 
 
 // prevent route not exist
