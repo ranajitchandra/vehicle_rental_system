@@ -1,6 +1,6 @@
 
-import express, { NextFunction, Request, Response } from "express";
-import initDB, { pool } from "./config/db";
+import express, { Request, Response } from "express";
+import initDB from "./config/db";
 import logger from "./middleware/logger";
 import { userRoutes } from "./modules/users/user.route";
 import { authRoutes } from "./modules/auth/auth.route";
