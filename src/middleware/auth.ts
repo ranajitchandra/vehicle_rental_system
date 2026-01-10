@@ -7,6 +7,7 @@ import config from "../config";
 // This is higher order function
 const auth = (...roles: string[]) => {
     
+    
     // this is inner function
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
