@@ -6,6 +6,7 @@ import { userRoutes } from "./modules/users/user.route";
 import { authRoutes } from "./modules/auth/auth.route";
 import path from "path";
 import { vehicleRoutes } from "./modules/vehicles/vehicle.routes";
+import { bookingRoutes } from "./modules/bookings/booking.routes";
 
 
 const app = express()
@@ -26,13 +27,21 @@ app.get("/", logger, (req: Request, res: Response) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
-// user CURD
-app.use("/api/v1/users", userRoutes)
+
 
 // auth Route
 app.use("/api/v1/auth", authRoutes)
 
+// user CURD
+app.use("/api/v1/users", userRoutes)
+
+//  vwchile crud
 app.use("/api/v1/vehicles", vehicleRoutes)
+
+// booking crud
+app.use("/api/v1/bookings", bookingRoutes)
+
+
 
 
 // prevent route not exist
